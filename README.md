@@ -1,93 +1,196 @@
-1.	 Metric Information
-Metric name: Covariate Drift (DFKI Method)
-What it does: This metric detects distribution changes in numerical features between two datasets (reference and evaluated). It identifies which and how much the features have shifted over time. 
+# Covariate Drift Detection with DFKI Gradient Based Method
 
-2.	Method Used
-•	KS Test: Measures how different two distributions are
-•	Gradient Weighting: Calculates how much the mean and variance changed
-•	Final Score: KS statistic × (1 + gradient_weight)
+**GitHub Repository:** []
 
-Higher scores mean more drift detected.
-3.	Models It Applies To: This metric is model agnostic as it applies to all models. Also, because it is a data metric, it does not really need a model to run.
+## Project Overview
+This project implements a **Covariate Drift Detection Metric** using the DFKI gradient-based weighting method. The experiment demonstrates how changes in input data distribution over time, affect machine learning model performance.
 
-4.	Data types it applies to: this metric applies to numerical features only. That means intergers and floats. It also requres that the reference and evaluated datasets are of the same structure.
 
-5.	Key Assumptions
-•	Both datasets have the same features
-•	Features contain valid numerical values
-•	A date column exists for timestamping results
+**Dataset:** Amazon Reviews  
+**Model:** Linear Regression (predicting ratings)  
+**Metric:** Covariate Drift Detection with DFKI gradient-based method  
 
-6.	 Test Implementation Details: This metric was implemented within the a4s-eval environment and based on its framework.
-Metric implementation file location:
-a4s_eval/metrics/data_metrics/covariate_drift_metric.py
+## Repository Structure
+```
+a4s-eval/
+├── a4s_eval/
+│   └── metrics/
+│       └── data_metrics/
+│           └── covariate_drift_metric.py    # the Metric implementation
+├── tests/
+│   └── metrics/
+│       └── data_metrics/
+│           └── test_covariate_drift_metric.py  # the Unit tests
+├── data/
+│   └── amazon_reviews.csv                   # Amazon Reviews dataset
+├── run_covariate_drift_experiment.py        # Main experiment script
+├── requirements.txt                         # Python dependencies
+└── README.md                                
+```
 
-Test File:
-tests/metrics/data_metrics/test_covariate_drift_metric.py
+## Installation & Setup
 
-How to Run the Test: the test can be ran using this command:
+### Prerequisites
+- Python 3.12.3
+- A4S evaluation environment (already configured)
+
+### Setup Steps
+```bash
+# Extract the archive
+unzip covariate_drift_submission.zip
+cd a4s-eval
+
+# Create and activate virtual environment
+source .venv/bin/activate #for windows system
+
+# Install dependencies
+## Dependencies
+
+Listed in `requirements.txt`:
+- pandas 
+- numpy 
+- scipy 
+- matplotlib 
+- seaborn
+- scikit-learn 
+
+Install with:
+```bash
+uv pip install -r requirements.txt
+```
+
+## The Unit Tests
+
+This project includes comprehensive unit tests for the covariate drift metric implementation.
+
+### To run the tests
+```bash
 uv run pytest -s tests/metrics/data_metrics/test_covariate_drift_metric.py
+```
 
-Expected result:
+### Expected Output
+========== test session starts ==========
+platform linux -- Python 3.12.3, pytest-8.4.1, pluggy-1.6.0
+rootdir: /home/chiamaka1997/a4s/a4s-eval
+configfile: pyproject.toml
+plugins: cov-6.2.1, anyio-4.9.0
 collected 3 items
-✓ Generated 23 covariate drift metrics
+
+tests/metrics/data_metrics/test_covariate_drift_metric.py ✓ Generated 23 covariate drift metrics
 ✓ All 23 scores are valid
+  - Score: 0.0800
+  - Score: 0.0227
+  - Score: 0.4501
 ✓ All 23 metrics have feature PIDs assigned
-3 passed in ~24s
 
-Dataset Used
-Dataset Name: Lending Club Loan Data (LCLD v2)
+========== 3 passed in 24.31s ==========
 
-Source: Built into the a4s-eval framework
-•	No manual download required
-•	Automatically available through framework fixtures
-•	Reference data: tab_class_train_data
-•	Evaluated data: tab_class_test_data
-•	Metadata: tests/data/lcld_v2_metadata_api.csv
+### what the tests verify
+- Generates 23 covariate drift metrics successfully
+- All drift scores are valid (between 0 and 1)
+- All metrics have proper feature identifiers (PIDs) assigned
+- DFKI gradient-based calculation works correctly
 
-Dataset Characteristics:
-•	23 numerical features
-•	Date column: issue_d
-•	Target column: charged_off
-•	Contains loan information (amounts, rates, terms, etc.)
+### Running the Experiment
 
-Test Functions
-The test file contains 3 test functions that verify the metric works correctly:
+### To execute complete experiment use this commmand
+```bash
+python run_covariate_drift_experiment.py
+```
 
-a.	 test_covariate_drift_generates_metrics
-•	Verifies that metrics are created for all numerical features
-•	Checks that 23 metrics are generated
+### What the Experiment Does
+1. Loads Amazon Reviews dataset (1,000 reviews)
+2. Splits data: 60% reference (training), 40% evaluation (testing)
+3. Trains Linear Regression model to predict ratings
+4. Calculates covariate drift scores using DFKI method
+5. Generates visualization
+6. Displays comprehensive results summary
 
-b.	 test_covariate_drift_scores_are_valid
-•	Ensures all scores are valid numbers 
-•	Confirms all scores are non-negative
+### Generated Output
+**File created:**
+- `covariate_drift_results.png` - Visualization showing drift analysis
 
-c.	 test_covariate_drift_has_feature_pids
-•	Verifies each metric has a feature ID assigned
-•	Ensures proper metadata linking
+## Experiment Results summary
 
-Parameters: No manual parameters required.
-The metric automatically:
-•	Identifies numerical features from the dataset
-•	Computes drift scores for each feature
-•	Assigns feature IDs
-•	Adds timestamps
+```
+✓ Reference: 600 samples (older reviews)
+✓ Evaluated: 400 samples (newer reviews)
 
-Everything runs automatically when you call the metric function.
+✓ DataShape with 5 features: ['sentiment', 'review_length', 'word_count', 
+  'helpfulness_score', 'verified_purchase']
 
-Test Results
-All tests passed successfully:
-•	✅ 3 out of 3 tests passed
-•	✅ 23 drift scores generated
-•	✅ Sample scores: 0.0800, 0.0227, 0.4501
-•	✅ All scores are valid numbers
-•	✅ All feature IDs properly assigned
-The metric successfully detected varying levels of drift across different features in the dataset.
+=== Model Performance ===
+Training: MSE = 0.4397, R² = 0.6089
+Testing:  MSE = 0.4651, R² = 0.5800
+Performance drop: 5.8%
 
-Summary
-This implementation provides a working covariate drift metric that:
-•	Successfully detects distribution changes in numerical features
-•	Uses the DFKI gradient-based weighting method
-•	Works with any tabular dataset containing numerical features
-•	Requires no manual configuration
-•	Has been tested and verified with all tests passing
-•	Integrates properly with the a4s-eval framework
+=== Covariate Drift Analysis ===
+Mean drift: 0.3013
+Max drift:  0.8898
+
+High Drift (≥0.3):    2 features
+Medium Drift (0.1-0.3): 1 feature
+Low Drift (<0.1):     2 features
+
+Conclusion: Detected drift correlates with model performance degradation
+```
+
+### Key Findings
+- **Moderate drift detected** (mean score: 0.3013)
+- **2 features** show significant distribution changes
+- **Model performance dropped 5.8%** from training to testing
+- Drift in features correlates with performance degradation
+
+## Dataset Information
+
+### Amazon Reviews Dataset
+**Features analyzed:**
+1. **sentiment** - Review sentiment score
+2. **review_length** - Number of characters
+3. **word_count** - Number of words
+4. **helpfulness_score** - Review helpfulness rating
+5. **verified_purchase** - Purchase verification status
+
+
+## Metric Implementation
+
+### DFKI Gradient-Based Method
+
+The covariate drift metric measures how much your data has changed over time using two main components:
+
+**1. KS Test (Kolmogorov-Smirnov Statistic)**
+- Compares the shape of two distributions (reference vs evaluation data)
+- Asks: "How different do these two datasets look?"
+- Returns a number between 0 (identical) and 1 (completely different)
+
+**2. DFKI Gradient Weight**
+
+This component measures how much the data's statistical properties changed:
+
+- **Mean Gradient**: Measures how much the average value shifted
+  - Example: If average review length was 100 words but became 150 words, that's a big shift
+  - Calculated as: absolute difference in averages, normalized by the original spread
+
+- **Variance Gradient**: Measures how much the data spread changed
+  - Example: If reviews used to be consistently 80-120 words but now range from 20-300 words, the spread increased
+  - Calculated as: absolute difference in spreads, normalized by the original spread
+
+- **Combined Weight**: Takes both gradients and combines them to get overall change
+  - Uses Pythagorean theorem to combine: square root of (mean_gradient² + variance_gradient²)
+
+**3. Final Drift Score**
+
+The final score multiplies the KS statistic by the gradient weight:
+- **drift_score = KS_statistic × (1 + gradient_weight)**
+
+This means:
+- If distributions look different AND statistics changed a lot = HIGH drift score
+- If distributions look similar AND statistics stayed stable = LOW drift score
+
+**Score Interpretation:**
+- **0.0 - 0.1**: Low drift - data is stable and reliable
+- **0.1 - 0.3**: Medium drift - some changes occurred, monitor closely
+- **≥0.3**: High drift - significant changes detected, model may need retraining
+
+
+**Project Summary:** This experiment successfully demonstrates covariate drift detection using the DFKI gradient-based method. The metric identified significant drift in Amazon review features over time, which directly correlated with a 5.8% degradation in model performance.
